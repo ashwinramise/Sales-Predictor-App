@@ -759,6 +759,7 @@ def render_graph(start_date, end_date, condition, state, county, brand, subbrand
 def graphing_preds(state,county,method,brand,subbrand,submit,filepath):
     if submit>0:
         df = pr.predictor(pd.read_csv(filepath),state,county,method,brand,subbrand)
+        df.to_csv(filepath,index=False)
         return pr.sales_plot(df,method,brand,subbrand)
 
 
