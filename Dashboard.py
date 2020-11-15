@@ -96,6 +96,7 @@ app.layout = html.Div(style={'background': '#333333',
                              'height': '100%',
                              'borderRadius': '5px',
                              },
+                      # Header and Permanent space
                       children=[
                           html.Div(
                               [html.A(
@@ -121,11 +122,12 @@ app.layout = html.Div(style={'background': '#333333',
                                   ], style={'display': 'flex', 'width': '100%'}, href="https://www.ncsu.edu/",
                               ),
                               ], style={'background': '#404040', 'color': 'black', 'width': '100%'}),
-
+# TABS Addition
                           html.Div(id='Selection_Tabs', className='control-tabs', children=[
                               dcc.Tabs(id='All_Tabs', value='All', parent_className='custom-tabs',
                                        className='custom-tabs-container',
                                        children=[
+                                           # TAB 1 -------------------------------------------------------
                                            dcc.Tab(
                                                label='Introduction',
                                                value='Introduction',
@@ -187,6 +189,7 @@ app.layout = html.Div(style={'background': '#333333',
 
                                                ], style={"background": "#80aaff", 'color': 'black'}
                                            ),
+                                           # TAB 2 ------------------------------------------------------------------
                                            dcc.Tab(
                                                label='Instructions For Use',
                                                value='about',
@@ -252,7 +255,7 @@ app.layout = html.Div(style={'background': '#333333',
                                                    style={'textAlign': 'left', 'background': '#ffffcc'}),
 
                                                ], style={"background": "#80aaff", 'color': 'black'}),
-
+                                           # TAB 3 --------------------------------------------------------------------
                                            dcc.Tab(
                                                label='Data Visualisation',
                                                value='DV',
@@ -409,7 +412,7 @@ app.layout = html.Div(style={'background': '#333333',
 
                                                ], style={"background": "#80aaff", 'font': 'black'})
                                                ], style={"background": "#80aaff", 'font': 'black'}),
-
+                                        # TAB 4 ------------------------------------------------------------------
                                            dcc.Tab(
                                                label='Prediction of sales',
                                                value='predict',
@@ -577,6 +580,7 @@ app.layout = html.Div(style={'background': '#333333',
                                    ),
                       ])
 
+# -----------------------------------------------CALLBACKS-------------------------------------------------------
 # Dictionary for Relative dropdown SubBrand Selection
 subBrands = {}
 for brand in E_Data['Brand'].unique():
