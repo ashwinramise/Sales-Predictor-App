@@ -9,7 +9,7 @@ import plotly.express as px
 import base64
 import warnings
 import io
-import Predictor as pr
+import Predictor as pr # Specific functions written for this dash app predictions
 import json
 
 warnings.filterwarnings('ignore')
@@ -27,7 +27,7 @@ Bystate = Datewise.groupby(['State', 'Bill Date']).agg({'Covid cases': 'sum', 'Q
 Byyear = Datewise.groupby(['State', 'Year', 'Bill Date']).agg({'Covid cases': 'sum', 'Qty': 'sum'}).reset_index()
 Bystate_Brand = Brandwise.groupby(['State', 'Brand', 'Bill Date']).agg({'Qty': 'sum'}).reset_index()
 
-# ------------------------------------REQUIRED FILES IMPORT---------------------------------------------------------
+# ------------------------------------REQUIRED IMAGE IMPORT---------------------------------------------------------
 # Images
 Table = r'.\Images\Data_Structure.png'
 table_base64 = base64.b64encode(open(Table, 'rb').read()).decode('ascii')
@@ -48,6 +48,7 @@ def get_options(list_states):
 
 
 #  create a column of cumulative cases and return a dataframe
+#  This will be used in the Data Visualization tab to show the data as graphs
 def countydf_creation(state, county=None, method='C', brand=None, subbrand=None, year=None):
     ''' 1. Enter State
     2. Enter County
@@ -79,7 +80,7 @@ def countydf_creation(state, county=None, method='C', brand=None, subbrand=None,
                                     (Brandwise['Year'] == year)]
     return df_by_state
 # ------------------------------------REQUIRED FUNCTIONS WRITTEN---------------------------------------------------------
-
+# Defines the styles used in the sheet
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 server = app.server
@@ -90,7 +91,7 @@ colors = {
     # 'background': '#e8dfdf',
     'text': 'white'
 }
-
+#Overall layout definition
 app.layout = html.Div(style={'background': '#333333',
                              'width': '100%',
                              'height': '100%',
@@ -262,18 +263,10 @@ app.layout = html.Div(style={'background': '#333333',
                                                className='custom-tab',
                                                selected_className='custom-tab--selected',
                                                children=[html.Div([
-                                                   # html.Div(
-                                                   #     className="row header",
-                                                   #     children=[
-                                                   #         html.H4('Data Visualisation For COVID and Sales',
-                                                   #                 style={
-                                                   #                     'textAlign': 'center'})
-                                                   #     ],
-                                                   # ),
-
                                                    html.Div([
                                                        html.Div(className='div-for-dropdown-covid/sales',
                                                                 children=[
+                                                                    # First Dropdown for group selection
                                                                     dcc.Dropdown(id='goverselector',
                                                                                  options=[
                                                                                      {'label': 'COVID', 'value': 'C'},
@@ -291,7 +284,7 @@ app.layout = html.Div(style={'background': '#333333',
                                                                        'font-size': 18,
                                                                        'color': 'black',
                                                                        'width': '25%'}),
-
+                                                                    # Second Dropdown for year
                                                        html.Div(className='div-for-dropdown-year',
                                                                 children=[
                                                                     dcc.Dropdown(id='yearSelect',
@@ -311,7 +304,7 @@ app.layout = html.Div(style={'background': '#333333',
                                                                        'font-size': 18,
                                                                        'color': 'black',
                                                                        'width': '25%'}),
-
+                                                                    # Third dropdown for Brand
                                                        html.Div(className='div-for-dropdown Brand',
                                                                 children=[
                                                                     dcc.Dropdown(id='BrandSelector',
@@ -331,6 +324,7 @@ app.layout = html.Div(style={'background': '#333333',
                                                                        'color': 'black',
                                                                        'width': '25%'}
                                                                 ),
+                                                                # Fourth Dropdown for sub-brand - updated relative to brand selected
                                                        html.Div(className='div-for-dropdown Subbrands',
                                                                 children=[
                                                                     dcc.Dropdown(id='subBrandselector',
@@ -351,7 +345,7 @@ app.layout = html.Div(style={'background': '#333333',
                                                        style={'display': 'flex', 'width': '100%'}),
 
                                                    html.Div([
-
+                                                            # Dropdown for state selection
                                                        html.Div(className='div-for-dropdown',
                                                                 children=[
                                                                     dcc.Dropdown(id='StateSelector',
@@ -366,7 +360,7 @@ app.layout = html.Div(style={'background': '#333333',
                                                                                  placeholder='Select State')
                                                                 ],
                                                                 style={'color': 'black', 'width': '50%'}),
-
+                                                                # Dropdown for county selection - Updated relative to State selected using callback
                                                        html.Div(className='div-for-dropdown 2',
                                                                 children=[
                                                                     dcc.Dropdown(id='CountySelector',
@@ -383,8 +377,8 @@ app.layout = html.Div(style={'background': '#333333',
                                                                 style={'color': 'black', 'width': '50%'})
                                                    ],
                                                        style={'display': 'flex', 'width': '100%'}),
-
-                                                   html.Div(['Select Date Range',  # add DateRangePicker here
+                                                            # Selecting a date range to be visualised
+                                                   html.Div(['Select Date Range',
                                                              dcc.DatePickerRange(
                                                                  id='date-input',
                                                                  stay_open_on_select=False,
@@ -408,6 +402,7 @@ app.layout = html.Div(style={'background': '#333333',
                                                             style={'marginTop': 30, 'marginBottom': 0, 'font-size': 18,
                                                                    'color': 'white',
                                                                    "background": "#99ceff"}),
+                                                   # Graph display
                                                    html.Div(id='graph-output')
 
                                                ], style={"background": "#80aaff", 'font': 'black'})
@@ -419,9 +414,11 @@ app.layout = html.Div(style={'background': '#333333',
                                                className='custom-tab',
                                                selected_className='custom-tab--selected',
                                                children=[
+                                                   # Text box for the file-path entry
                                                    html.Div([
                                                        dcc.Input(id='filepath', type='text', placeholder="Enter Path for file ending with *.csv",
                                                                  style={'width': '50%'}),
+                                                       # Submit button
                                                        html.Button(id='submit-button', type='submit', children='Submit'
                                                                    ,style={'background-color':'#008CBA',
                                                                            'font-size': '12px',
@@ -431,6 +428,7 @@ app.layout = html.Div(style={'background': '#333333',
                                                                            })
                                                        ,
                                                        html.Div([
+                                                           # Select the type of model (Pandemic / Natural History)
                                                            html.Div(className='div-for-dropdown-Model-Type',
                                                                     children=[
                                                                         dcc.Dropdown(id='modelSelect',
@@ -452,6 +450,7 @@ app.layout = html.Div(style={'background': '#333333',
                                                                            'font-size': 18,
                                                                            'color': 'black',
                                                                            'width': '25%'}),
+                                                           # Select the state
                                                            html.Div(className='div-for-dropdown-3',
                                                                     children=[
                                                                         dcc.Dropdown(id='State2Selector',
@@ -470,6 +469,7 @@ app.layout = html.Div(style={'background': '#333333',
                                                                            'font-size': 18,
                                                                            'color': 'black',
                                                                            'width': '25%'}),
+                                                                    # Select county - Updated relative to state
                                                                 html.Div(className='div-for-dropdown 2',
                                                                 children=[
                                                                     dcc.Dropdown(id='County2Selector',
@@ -484,6 +484,7 @@ app.layout = html.Div(style={'background': '#333333',
                                                                                  )
                                                                 ],
                                                                 style={'color': 'black', 'width': '25%'}),
+                                                           # Select category for pie chart - Works only if Natural History selected
                                                         html.Div(className='div-for-dropdown 3',
                                                                 children=[
                                                            dcc.Dropdown(id='pieselect',
@@ -512,6 +513,7 @@ app.layout = html.Div(style={'background': '#333333',
                                                        ], style={'display': 'flex', 'width': '100%','marginTop':10}),
 
                                                        html.Div([
+                                                           # Select Brand from drop down
                                                             html.Div(className='div-for-dropdown Brand',
                                                                 children=[
                                                                     dcc.Dropdown(id='Brand2Selector',
@@ -531,6 +533,7 @@ app.layout = html.Div(style={'background': '#333333',
                                                                        'color': 'black',
                                                                        'width': '25%'}
                                                                 ),
+                                                           # Select Sub brand - Updated relative to brand using callback
                                                        html.Div(className='div-for-dropdown Sub-brands',
                                                                 children=[
                                                                     dcc.Dropdown(id='subBrand2selector',
@@ -573,6 +576,7 @@ app.layout = html.Div(style={'background': '#333333',
 
                           html.Div(
                                    children=[
+                                       # Wallpaper for full page
                                        html.Img(
                                            src='https://wallpapercave.com/wp/wp710917.png',
                                            style={'height': '100%', 'width':'100%', 'textAlign': 'left'})
@@ -590,14 +594,14 @@ for brand in E_Data['Brand'].unique():
         subbrands.append(sub)
     subBrands.update({brand: subbrands})
 
-
+# Update Sub-brands in Data Visualization tab
 @app.callback(
     Output('subBrandselector', 'options'),
     [Input('BrandSelector', 'value')])
 def set_subbrand_options(selected_state):
     return [{'label': i, 'value': i} for i in subBrands[selected_state]]
 
-
+# Update Sub-brands in Data Prediction tab
 @app.callback(
     Output('subBrand2selector', 'options'),
     [Input('Brand2Selector', 'value')])
@@ -616,25 +620,25 @@ for state in E_Data['State'].unique():
         counties.append(county)
     State_Counties.update({state: counties})
 
-
+# Update Counties in Data Visualization tab
 @app.callback(
     Output('CountySelector', 'options'),
     [Input('StateSelector', 'value')])
 def set_county_options(selected_state):
     return [{'label': i, 'value': i} for i in State_Counties[selected_state]]
 
+# Update Counties in Data Prediction tab
 @app.callback(
     Output('County2Selector', 'options'),
     [Input('State2Selector', 'value')])
 def set_county_options(selected_state):
     return [{'label': i, 'value': i} for i in State_Counties[selected_state]]
 
-
 # Dictionary for Relative dropdown County Selection
 
-
+# Callback to display graph for selections
 @app.callback(Output('graph-output', 'children'),
-              [Input('date-input', 'start_date'),  # Add start date
+              [Input('date-input', 'start_date'),
                Input('date-input', 'end_date'),
                Input('goverselector', 'value'),
                Input('StateSelector', 'value'),
@@ -758,8 +762,8 @@ def render_graph(start_date, end_date, condition, state, county, brand, subbrand
                 State('filepath','value'))
 def graphing_preds(state,county,method,brand,subbrand,submit,filepath):
     if submit>0:
-        df = pr.predictor(pd.read_csv(filepath),state,county,method,brand,subbrand)
-        df.to_csv(filepath,index=False)
+        df = pr.predictor(pd.read_csv(filepath),state,county,method,brand,subbrand) # Call Predictor functions from imports
+        df.to_csv(filepath,index=False) # Write the predictions to the uploaded file in relevant columns
         return pr.sales_plot(df,method,brand,subbrand)
 
 
@@ -771,9 +775,9 @@ def graphing_preds(state,county,method,brand,subbrand,submit,filepath):
                Input('modelSelect', 'value')])
 def update_figure(state,county,method,model):
     if model == 'Natural_Hist':
-        Dict = pr._definedicts(f'.\DataModels\DICTIONARIES_DO_NOT_DEL\{method}.json')
+        Dict = pr._definedicts(f'.\DataModels\DICTIONARIES_DO_NOT_DEL\{method}.json') # Call dictionary for that particular state, county
         if method != 'Geographical':
-            df = pd.DataFrame.from_dict([Dict.get(state).get(county)]).T
+            df = pd.DataFrame.from_dict([Dict.get(state).get(county)]).T # transpose the dataframe from dictionary for the plot
         else:
             df = pd.DataFrame.from_dict([Dict.get(state)]).T
         fig = px.pie(df, values=df[0].to_list(), names=df.index.to_list(), title=f'Comparison by {method}')
