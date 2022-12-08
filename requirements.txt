@@ -6,7 +6,7 @@ backcall==0.2.0
 bleach==3.2.1
 Brotli==1.0.9
 causalnex==0.8.1
-certifi==2020.6.20
+certifi==2022.12.7
 cffi==1.14.3
 chardet==3.0.4
 click==7.1.2
